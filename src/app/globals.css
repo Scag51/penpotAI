@@ -1,0 +1,18 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --eq-dark: #1e1f34;
+  --eq-green: #3ce65f;
+  --eq-bg: #0f1020;
+  --eq-surface: #1e1f34;
+  --eq-border: rgba(255,255,255,0.08);
+  --eq-text: rgba(255,255,255,0.85);
+  --eq-muted: rgba(255,255,255,0.35);
+  --font-title: 'Raleway', sans-serif;
+  --font-body: 'Montserrat', sans-serif;
+  --font-label: 'Roboto Condensed', sans-serif;
+}
+
+html, body { height: 100%; background: var(--eq-bg); color: var(--eq-text); }
+
+* { scrollbar-width: thin; scrollbar-color: rgba(60,230,95,0.2) transparent; }
