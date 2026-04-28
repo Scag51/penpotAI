@@ -15,6 +15,19 @@ interface ToolCall {
   error?: string;
 }
 
+interface Stats {
+  iteration: number;
+  tokens: { input: number; output: number; total: number };
+  cost: { iteration_eur: string; total_eur: string };
+  total_tokens: { input: number; output: number };
+}
+
+interface DoneStats {
+  total_tokens: number;
+  total_cost_eur: string;
+  iterations: number;
+}
+
 interface Message {
   id: string;
   role: Role;
@@ -39,36 +52,36 @@ const LOGO = (
 );
 
 const ACTIONS = [
-  { cat: "Pages", icon: "📄", items: [
-    { icon: "🏠", label: "Accueil", desc: "Hero + services + contact", prompt: "Crée une page d'accueil complète avec hero plein écran accrocheur, section 3 services en colonnes, section À propos courte, et bouton contact. Publie-la directement sur WordPress." },
-    { icon: "👥", label: "À propos", desc: "Présentation & équipe", prompt: "Crée une page À propos professionnelle avec présentation de l'entreprise, valeurs et section équipe. Publie-la directement." },
-    { icon: "🛠️", label: "Services", desc: "Grille de prestations", prompt: "Crée une page Services avec une grille de 6 prestations, chacune avec icône, titre et description courte. Publie-la directement." },
-    { icon: "📞", label: "Contact", desc: "Coordonnées & horaires", prompt: "Crée une page Contact avec coordonnées complètes, horaires d'ouverture et appel à l'action. Publie-la directement." },
-    { icon: "🎨", label: "Portfolio", desc: "Grille de réalisations", prompt: "Crée une page Portfolio avec grille de 6 réalisations en cartes visuelles. Publie-la directement." },
-    { icon: "⚖️", label: "Mentions légales", desc: "Page légale obligatoire", prompt: "Crée une page Mentions légales complète selon la loi française. Publie-la directement." },
+  { cat: "Pages", icon: "Ã°ÂÂÂ", items: [
+    { icon: "Ã°ÂÂÂ ", label: "Accueil", desc: "Hero + services + contact", prompt: "CrÃÂ©e une page d'accueil complÃÂ¨te avec hero plein ÃÂ©cran accrocheur, section 3 services en colonnes, section ÃÂ propos courte, et bouton contact. Publie-la directement sur WordPress." },
+    { icon: "Ã°ÂÂÂ¥", label: "ÃÂ propos", desc: "PrÃÂ©sentation & ÃÂ©quipe", prompt: "CrÃÂ©e une page ÃÂ propos professionnelle avec prÃÂ©sentation de l'entreprise, valeurs et section ÃÂ©quipe. Publie-la directement." },
+    { icon: "Ã°ÂÂÂ Ã¯Â¸Â", label: "Services", desc: "Grille de prestations", prompt: "CrÃÂ©e une page Services avec une grille de 6 prestations, chacune avec icÃÂ´ne, titre et description courte. Publie-la directement." },
+    { icon: "Ã°ÂÂÂ", label: "Contact", desc: "CoordonnÃÂ©es & horaires", prompt: "CrÃÂ©e une page Contact avec coordonnÃÂ©es complÃÂ¨tes, horaires d'ouverture et appel ÃÂ  l'action. Publie-la directement." },
+    { icon: "Ã°ÂÂÂ¨", label: "Portfolio", desc: "Grille de rÃÂ©alisations", prompt: "CrÃÂ©e une page Portfolio avec grille de 6 rÃÂ©alisations en cartes visuelles. Publie-la directement." },
+    { icon: "Ã¢ÂÂÃ¯Â¸Â", label: "Mentions lÃÂ©gales", desc: "Page lÃÂ©gale obligatoire", prompt: "CrÃÂ©e une page Mentions lÃÂ©gales complÃÂ¨te selon la loi franÃÂ§aise. Publie-la directement." },
   ]},
-  { cat: "Contenu", icon: "✍️", items: [
-    { icon: "📝", label: "Article blog", desc: "Article structuré", prompt: "Crée un article de blog professionnel avec introduction, 3 sections avec titres H2, listes et conclusion CTA. Publie-le directement." },
-    { icon: "❓", label: "FAQ", desc: "Questions fréquentes", prompt: "Crée une page FAQ avec 8 questions-réponses bien organisées. Publie-la directement." },
-    { icon: "⭐", label: "Témoignages", desc: "Avis clients", prompt: "Crée une page Témoignages avec 6 avis clients mis en forme avec nom et commentaire. Publie-la directement." },
+  { cat: "Contenu", icon: "Ã¢ÂÂÃ¯Â¸Â", items: [
+    { icon: "Ã°ÂÂÂ", label: "Article blog", desc: "Article structurÃÂ©", prompt: "CrÃÂ©e un article de blog professionnel avec introduction, 3 sections avec titres H2, listes et conclusion CTA. Publie-le directement." },
+    { icon: "Ã¢ÂÂ", label: "FAQ", desc: "Questions frÃÂ©quentes", prompt: "CrÃÂ©e une page FAQ avec 8 questions-rÃÂ©ponses bien organisÃÂ©es. Publie-la directement." },
+    { icon: "Ã¢Â­Â", label: "TÃÂ©moignages", desc: "Avis clients", prompt: "CrÃÂ©e une page TÃÂ©moignages avec 6 avis clients mis en forme avec nom et commentaire. Publie-la directement." },
   ]},
-  { cat: "Gestion", icon: "⚙️", items: [
-    { icon: "📋", label: "Mes pages", desc: "Voir toutes les pages", prompt: "Liste toutes les pages existantes sur le site WordPress avec leur statut." },
-    { icon: "📰", label: "Mes articles", desc: "Voir tous les articles", prompt: "Liste tous les articles publiés sur le site WordPress avec leur date." },
-    { icon: "ℹ️", label: "Infos du site", desc: "Nom, URL, version", prompt: "Donne-moi les informations générales du site WordPress." },
+  { cat: "Gestion", icon: "Ã¢ÂÂÃ¯Â¸Â", items: [
+    { icon: "Ã°ÂÂÂ", label: "Mes pages", desc: "Voir toutes les pages", prompt: "Liste toutes les pages existantes sur le site WordPress avec leur statut." },
+    { icon: "Ã°ÂÂÂ°", label: "Mes articles", desc: "Voir tous les articles", prompt: "Liste tous les articles publiÃÂ©s sur le site WordPress avec leur date." },
+    { icon: "Ã¢ÂÂ¹Ã¯Â¸Â", label: "Infos du site", desc: "Nom, URL, version", prompt: "Donne-moi les informations gÃÂ©nÃÂ©rales du site WordPress." },
   ]},
 ];
 
 const GUIDE = [
-  { icon: "💬", title: "Décrivez en langage naturel", desc: "Écrivez simplement ce que vous voulez. Ex : \"Crée une page d'accueil pour un plombier à Lyon avec 4 services et les tarifs\"." },
-  { icon: "⚡", title: "Utilisez les actions rapides", desc: "Cliquez sur Actions pour choisir un type de page. L'IA crée directement un contenu professionnel." },
-  { icon: "🖼️", title: "Envoyez une maquette", desc: "Glissez-déposez ou collez (Ctrl+V) n'importe quelle image. L'IA analyse et reproduit en WordPress." },
-  { icon: "📊", title: "Suivez le statut en temps réel", desc: "La barre sous le header indique : vert = réflexion, bleu = écriture WordPress, rouge = erreur. Le lien Voir apparaît dès que c'est publié." },
-  { icon: "✏️", title: "Affinez à votre guise", desc: "Après création : \"Rends le titre plus grand\", \"Ajoute des témoignages\", \"Change la couleur du bouton en vert\"." },
+  { icon: "Ã°ÂÂÂ¬", title: "DÃÂ©crivez en langage naturel", desc: "ÃÂcrivez simplement ce que vous voulez. Ex : \"CrÃÂ©e une page d'accueil pour un plombier ÃÂ  Lyon avec 4 services et les tarifs\"." },
+  { icon: "Ã¢ÂÂ¡", title: "Utilisez les actions rapides", desc: "Cliquez sur Actions pour choisir un type de page. L'IA crÃÂ©e directement un contenu professionnel." },
+  { icon: "Ã°ÂÂÂ¼Ã¯Â¸Â", title: "Envoyez une maquette", desc: "Glissez-dÃÂ©posez ou collez (Ctrl+V) n'importe quelle image. L'IA analyse et reproduit en WordPress." },
+  { icon: "Ã°ÂÂÂ", title: "Suivez le statut en temps rÃÂ©el", desc: "La barre sous le header indique : vert = rÃÂ©flexion, bleu = ÃÂ©criture WordPress, rouge = erreur. Le lien Voir apparaÃÂ®t dÃÂ¨s que c'est publiÃÂ©." },
+  { icon: "Ã¢ÂÂÃ¯Â¸Â", title: "Affinez ÃÂ  votre guise", desc: "AprÃÂ¨s crÃÂ©ation : \"Rends le titre plus grand\", \"Ajoute des tÃÂ©moignages\", \"Change la couleur du bouton en vert\"." },
 ];
 
 export default function Chat() {
-  const [messages, setMessages] = useState<Message[]>([{ id: "welcome", role: "assistant", content: "Bonjour 👋 Je suis votre assistant de création WordPress.\n\nDécrivez ce que vous souhaitez, choisissez une action rapide, ou envoyez une maquette — je crée directement sur votre site." }]);
+  const [messages, setMessages] = useState<Message[]>([{ id: "welcome", role: "assistant", content: "Bonjour Ã°ÂÂÂ Je suis votre assistant de crÃÂ©ation WordPress.\n\nDÃÂ©crivez ce que vous souhaitez, choisissez une action rapide, ou envoyez une maquette Ã¢ÂÂ je crÃÂ©e directement sur votre site." }]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadState, setLoadState] = useState<LoadState>("idle");
@@ -78,6 +91,9 @@ export default function Chat() {
   const [pendingImageName, setPendingImageName] = useState("");
   const [dragOver, setDragOver] = useState(false);
   const [activeCat, setActiveCat] = useState(0);
+  const [showDebug, setShowDebug] = useState(false);
+  const [stats, setStats] = useState<Stats | null>(null);
+  const [doneStats, setDoneStats] = useState<DoneStats | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -91,7 +107,7 @@ export default function Chat() {
     r.readAsDataURL(file);
   };
 
-  const toolLabel = (tool: string) => ({ wp_create_page: "Création de la page", wp_create_post: "Création de l'article", wp_update_page: "Mise à jour", wp_list_pages: "Lecture des pages", wp_list_posts: "Lecture des articles", wp_get_site_info: "Lecture des infos" }[tool] ?? tool.replace("wp_", "").replace(/_/g, " "));
+  const toolLabel = (tool: string) => ({ wp_create_page: "CrÃÂ©ation de la page", wp_create_post: "CrÃÂ©ation de l'article", wp_update_page: "Mise ÃÂ  jour", wp_list_pages: "Lecture des pages", wp_list_posts: "Lecture des articles", wp_get_site_info: "Lecture des infos" }[tool] ?? tool.replace("wp_", "").replace(/_/g, " "));
 
   const sendMessage = useCallback(async (text: string, imageData?: string) => {
     if ((!text.trim() && !imageData) || loading) return;
@@ -115,33 +131,49 @@ export default function Chat() {
             if (ev.type === "tool_done") { setLoadState("thinking"); setCurrentTool(undefined); setMessages((p) => p.map((m) => m.id === asstId ? { ...m, toolCalls: (m.toolCalls ?? []).map((tc) => tc.tool === ev.tool ? { ...tc, status: "done", result: ev.result } : tc) } : m)); }
             if (ev.type === "tool_error") { setLoadState("error"); setMessages((p) => p.map((m) => m.id === asstId ? { ...m, toolCalls: (m.toolCalls ?? []).map((tc) => tc.tool === ev.tool ? { ...tc, status: "error", error: ev.error } : tc) } : m)); }
             if (ev.type === "error") { setLoadState("error"); setMessages((p) => p.map((m) => m.id === asstId ? { ...m, content: m.content || `Erreur : ${ev.message}` } : m)); }
+            if (ev.type === "stats") { setStats(ev as Stats); }
+            if (ev.type === "done_stats") { setDoneStats(ev as DoneStats); }
           } catch { /* skip */ }
         }
       }
-    } catch (err) { setLoadState("error"); setMessages((p) => p.map((m) => m.id === asstId ? { ...m, content: `Impossible de joindre le serveur.\nDétail : ${err}` } : m)); }
+    } catch (err) { setLoadState("error"); setMessages((p) => p.map((m) => m.id === asstId ? { ...m, content: `Impossible de joindre le serveur.\nDÃÂ©tail : ${err}` } : m)); }
     finally { setLoading(false); setLoadState("idle"); }
   }, [messages, loading]);
 
   const isReady = !loading && (!!input.trim() || !!pendingImage);
-  const statusCfg = { thinking: { c: "#059669", bg: "#ecfdf5", b: "#a7f3d0", t: "Claude analyse votre demande…" }, calling: { c: "#2563eb", bg: "#eff6ff", b: "#bfdbfe", t: `WordPress : ${toolLabel(currentTool ?? "")}…` }, error: { c: "#dc2626", bg: "#fef2f2", b: "#fecaca", t: "Une erreur est survenue. Reformulez ou réessayez." }, idle: null }[loadState];
+  const statusCfg = { thinking: { c: "#059669", bg: "#ecfdf5", b: "#a7f3d0", t: "Claude analyse votre demandeÃ¢ÂÂ¦" }, calling: { c: "#2563eb", bg: "#eff6ff", b: "#bfdbfe", t: `WordPress : ${toolLabel(currentTool ?? "")}Ã¢ÂÂ¦` }, error: { c: "#dc2626", bg: "#fef2f2", b: "#fecaca", t: "Une erreur est survenue. Reformulez ou rÃÂ©essayez." }, idle: null }[loadState];
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100dvh", background: "#f8faff", fontFamily: "'Inter', system-ui, sans-serif", color: "#1e2040", fontSize: 14 }}>
 
       <header style={{ background: "#fff", borderBottom: "1px solid #e8eaf2", padding: "0 18px", height: 54, display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0, boxShadow: "0 1px 4px rgba(0,0,0,0.05)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>{LOGO}<div style={{ width: 1, height: 18, background: "#e8eaf2" }} /><span style={{ fontSize: 12, color: "#9194a8", fontWeight: 500 }}>Studio WordPress</span></div>
-        <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: "#059669", fontWeight: 600, background: "#ecfdf5", padding: "4px 11px", borderRadius: 20, border: "1px solid #a7f3d0" }}><span style={{ width: 6, height: 6, borderRadius: "50%", background: "#10b981", display: "inline-block" }} />WordPress actif</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          {doneStats && <span style={{ fontSize: 11, color: "#6b7280", fontWeight: 500 }}>ð° {doneStats.total_cost_eur}â¬ Â· {doneStats.total_tokens.toLocaleString()} tokens</span>}
+          <button onClick={() => setShowDebug(p => !p)} title="Logs debug" style={{ width: 28, height: 28, borderRadius: 7, border: "1px solid #e0e7ef", background: showDebug ? "#eff6ff" : "#fff", cursor: "pointer", fontSize: 13, color: showDebug ? "#2563eb" : "#9194a8" }}>ð</button>
+          <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: "#059669", fontWeight: 600, background: "#ecfdf5", padding: "4px 11px", borderRadius: 20, border: "1px solid #a7f3d0" }}><span style={{ width: 6, height: 6, borderRadius: "50%", background: "#10b981", display: "inline-block" }} />WordPress actif</div>
+        </div>
       </header>
 
       {statusCfg && (
         <div style={{ background: statusCfg.bg, borderBottom: `1px solid ${statusCfg.b}`, padding: "7px 18px", display: "flex", alignItems: "center", gap: 9, flexShrink: 0 }}>
-          {loadState !== "error" ? <span style={{ display: "flex", gap: 3 }}>{[0,150,300].map((d,i) => <span key={i} style={{ width: 5, height: 5, borderRadius: "50%", background: statusCfg.c, display: "inline-block", animation: `dot 1s ${d}ms ease-in-out infinite` }} />)}</span> : <span>⚠️</span>}
+          {loadState !== "error" ? <span style={{ display: "flex", gap: 3 }}>{[0,150,300].map((d,i) => <span key={i} style={{ width: 5, height: 5, borderRadius: "50%", background: statusCfg.c, display: "inline-block", animation: `dot 1s ${d}ms ease-in-out infinite` }} />)}</span> : <span>Ã¢ÂÂ Ã¯Â¸Â</span>}
           <span style={{ fontSize: 12, color: statusCfg.c, fontWeight: 500 }}>{statusCfg.t}</span>
         </div>
       )}
 
+      {showDebug && stats && (
+        <div style={{ background: "#1e2040", color: "#e2e8f0", padding: "8px 16px", fontSize: 11, fontFamily: "monospace", display: "flex", gap: 20, flexWrap: "wrap", flexShrink: 0, borderBottom: "1px solid #374151" }}>
+          <span>Iteration {stats.iteration}</span>
+          <span>Input: {stats.tokens.input.toLocaleString()} tk</span>
+          <span>Output: {stats.tokens.output.toLocaleString()} tk</span>
+          <span>Ce prompt: {stats.cost.iteration_eur}EUR</span>
+          <span>Session: {stats.cost.total_eur}EUR</span>
+        </div>
+      )}
+
       <nav style={{ display: "flex", gap: 2, padding: "10px 16px 0", background: "#fff", borderBottom: "1px solid #e8eaf2", flexShrink: 0 }}>
-        {([{ id: "chat", label: "💬 Conversation" }, { id: "actions", label: "⚡ Actions rapides" }, { id: "guide", label: "📖 Guide" }] as { id: Panel; label: string }[]).map((n) => (
+        {([{ id: "chat", label: "Ã°ÂÂÂ¬ Conversation" }, { id: "actions", label: "Ã¢ÂÂ¡ Actions rapides" }, { id: "guide", label: "Ã°ÂÂÂ Guide" }] as { id: Panel; label: string }[]).map((n) => (
           <button key={n.id} onClick={() => setPanel(n.id)} style={{ padding: "6px 14px", border: "none", borderRadius: "8px 8px 0 0", background: panel === n.id ? "#f8faff" : "transparent", color: panel === n.id ? "#1e2040" : "#9194a8", fontWeight: panel === n.id ? 600 : 400, fontSize: 12.5, cursor: "pointer", fontFamily: "inherit", borderBottom: panel === n.id ? "2px solid #2563eb" : "2px solid transparent" }}>{n.label}</button>
         ))}
       </nav>
@@ -150,7 +182,7 @@ export default function Chat() {
         <div style={{ flex: 1, overflowY: "auto", padding: "18px 16px", display: "flex", flexDirection: "column" }}
           onDragOver={(e) => { e.preventDefault(); setDragOver(true); }} onDragLeave={() => setDragOver(false)}
           onDrop={(e) => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files[0]; if (f) processFile(f); }}>
-          {dragOver && <div style={{ position: "fixed", inset: 0, background: "rgba(37,99,235,0.05)", border: "2px dashed #2563eb", zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}><div style={{ background: "#fff", padding: "16px 30px", borderRadius: 12, color: "#2563eb", fontWeight: 700, boxShadow: "0 4px 20px rgba(0,0,0,0.1)" }}>Déposer l'image ici</div></div>}
+          {dragOver && <div style={{ position: "fixed", inset: 0, background: "rgba(37,99,235,0.05)", border: "2px dashed #2563eb", zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}><div style={{ background: "#fff", padding: "16px 30px", borderRadius: 12, color: "#2563eb", fontWeight: 700, boxShadow: "0 4px 20px rgba(0,0,0,0.1)" }}>DÃÂ©poser l'image ici</div></div>}
           {messages.map((msg) => (
             <div key={msg.id} style={{ display: "flex", gap: 10, maxWidth: "84%", alignSelf: msg.role === "user" ? "flex-end" : "flex-start", flexDirection: msg.role === "user" ? "row-reverse" : "row", marginBottom: 16 }}>
               <div style={{ width: 30, height: 30, borderRadius: "50%", flexShrink: 0, marginTop: 20, display: "flex", alignItems: "center", justifyContent: "center", background: msg.role === "assistant" ? "#eef2ff" : "#1e2040", border: msg.role === "assistant" ? "1px solid #e0e7ff" : "none", fontSize: 11, fontWeight: 700, color: msg.role === "assistant" ? "#4f46e5" : "#fff" }}>{msg.role === "assistant" ? "IA" : "CS"}</div>
@@ -159,9 +191,9 @@ export default function Chat() {
                 {msg.image && <img src={msg.image} alt="" style={{ maxWidth: 200, borderRadius: 8, marginBottom: 4, border: "1px solid #e8eaf2" }} />}
                 {(msg.toolCalls ?? []).map((tc, i) => (
                   <div key={i} style={{ display: "flex", alignItems: "center", gap: 7, padding: "7px 12px", borderRadius: 8, marginBottom: 4, background: tc.status === "done" ? "#ecfdf5" : tc.status === "error" ? "#fef2f2" : "#eff6ff", border: `1px solid ${tc.status === "done" ? "#a7f3d0" : tc.status === "error" ? "#fecaca" : "#bfdbfe"}`, fontSize: 12 }}>
-                    <span>{tc.status === "pending" ? "⏳" : tc.status === "done" ? "✅" : "❌"}</span>
-                    <span style={{ color: tc.status === "done" ? "#059669" : tc.status === "error" ? "#dc2626" : "#2563eb", fontWeight: 500 }}>{tc.status === "pending" ? `${toolLabel(tc.tool)} en cours…` : tc.status === "done" ? toolLabel(tc.tool) : `Échec : ${toolLabel(tc.tool)}`}</span>
-                    {tc.status === "done" && tc.result?.url && <a href={tc.result.url as string} target="_blank" rel="noreferrer" style={{ marginLeft: "auto", color: "#2563eb", fontWeight: 700, fontSize: 11, textDecoration: "none", padding: "2px 9px", background: "#dbeafe", borderRadius: 6 }}>Voir ↗</a>}
+                    <span>{tc.status === "pending" ? "Ã¢ÂÂ³" : tc.status === "done" ? "Ã¢ÂÂ" : "Ã¢ÂÂ"}</span>
+                    <span style={{ color: tc.status === "done" ? "#059669" : tc.status === "error" ? "#dc2626" : "#2563eb", fontWeight: 500 }}>{tc.status === "pending" ? `${toolLabel(tc.tool)} en coursÃ¢ÂÂ¦` : tc.status === "done" ? toolLabel(tc.tool) : `ÃÂchec : ${toolLabel(tc.tool)}`}</span>
+                    {tc.status === "done" && tc.result?.url && <a href={tc.result.url as string} target="_blank" rel="noreferrer" style={{ marginLeft: "auto", color: "#2563eb", fontWeight: 700, fontSize: 11, textDecoration: "none", padding: "2px 9px", background: "#dbeafe", borderRadius: 6 }}>Voir Ã¢ÂÂ</a>}
                     {tc.status === "error" && tc.error && <span style={{ marginLeft: 4, fontSize: 10, color: "#dc2626" }}>{String(tc.error).slice(0, 80)}</span>}
                   </div>
                 ))}
@@ -177,7 +209,7 @@ export default function Chat() {
 
       {panel === "actions" && (
         <div style={{ flex: 1, overflowY: "auto", padding: 16 }}>
-          <p style={{ fontSize: 12, color: "#9194a8", marginBottom: 14 }}>Cliquez pour créer directement sur votre WordPress.</p>
+          <p style={{ fontSize: 12, color: "#9194a8", marginBottom: 14 }}>Cliquez pour crÃÂ©er directement sur votre WordPress.</p>
           <div style={{ display: "flex", gap: 6, marginBottom: 16, flexWrap: "wrap" }}>
             {ACTIONS.map((a, i) => <button key={i} onClick={() => setActiveCat(i)} style={{ padding: "5px 14px", borderRadius: 20, border: `1px solid ${activeCat === i ? "#2563eb" : "#e0e7ef"}`, background: activeCat === i ? "#eff6ff" : "#fff", color: activeCat === i ? "#2563eb" : "#9194a8", cursor: "pointer", fontSize: 12, fontWeight: activeCat === i ? 600 : 400, fontFamily: "inherit" }}>{a.icon} {a.cat}</button>)}
           </div>
@@ -194,9 +226,9 @@ export default function Chat() {
           </div>
           <div style={{ marginTop: 18, padding: 16, borderRadius: 10, border: "2px dashed #e0e7ef", background: "#f0f4ff", textAlign: "center" as const }}
             onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) { processFile(f); setPanel("chat"); } }}>
-            <div style={{ fontSize: 26, marginBottom: 8 }}>🖼️</div>
+            <div style={{ fontSize: 26, marginBottom: 8 }}>Ã°ÂÂÂ¼Ã¯Â¸Â</div>
             <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Reproduire une maquette</p>
-            <p style={{ fontSize: 11, color: "#9194a8", marginBottom: 12 }}>Déposez une image ou sélectionnez un fichier</p>
+            <p style={{ fontSize: 11, color: "#9194a8", marginBottom: 12 }}>DÃÂ©posez une image ou sÃÂ©lectionnez un fichier</p>
             <button onClick={() => fileRef.current?.click()} style={{ padding: "8px 20px", borderRadius: 8, border: "1px solid #2563eb", background: "#eff6ff", color: "#2563eb", cursor: "pointer", fontSize: 12, fontWeight: 600, fontFamily: "inherit" }}>Choisir une image</button>
           </div>
         </div>
@@ -204,8 +236,8 @@ export default function Chat() {
 
       {panel === "guide" && (
         <div style={{ flex: 1, overflowY: "auto", padding: 16 }}>
-          <h2 style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>Comment créer votre site</h2>
-          <p style={{ fontSize: 12, color: "#9194a8", marginBottom: 16 }}>5 étapes pour maîtriser l'assistant WordPress.</p>
+          <h2 style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>Comment crÃÂ©er votre site</h2>
+          <p style={{ fontSize: 12, color: "#9194a8", marginBottom: 16 }}>5 ÃÂ©tapes pour maÃÂ®triser l'assistant WordPress.</p>
           <div style={{ display: "flex", flexDirection: "column", gap: 9, marginBottom: 22 }}>
             {GUIDE.map((g) => (
               <div key={g.title} style={{ display: "flex", gap: 12, padding: "12px 14px", borderRadius: 10, background: "#fff", border: "1px solid #e8eaf2", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
@@ -214,8 +246,8 @@ export default function Chat() {
               </div>
             ))}
           </div>
-          <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>🎯 Exemples de prompts</h3>
-          {["Crée une page d'accueil pour un cabinet dentaire à Paris avec hero, 3 services et prise de RDV", "Crée une page Services pour un électricien : dépannage, installation, mise aux normes", "Crée un article de blog sur les tendances jardinage 2026, 3 sections structurées", "Crée une page À propos pour une agence web de 5 personnes basée à Lyon"].map((ex) => (
+          <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>Ã°ÂÂÂ¯ Exemples de prompts</h3>
+          {["CrÃÂ©e une page d'accueil pour un cabinet dentaire ÃÂ  Paris avec hero, 3 services et prise de RDV", "CrÃÂ©e une page Services pour un ÃÂ©lectricien : dÃÂ©pannage, installation, mise aux normes", "CrÃÂ©e un article de blog sur les tendances jardinage 2026, 3 sections structurÃÂ©es", "CrÃÂ©e une page ÃÂ propos pour une agence web de 5 personnes basÃÂ©e ÃÂ  Lyon"].map((ex) => (
             <button key={ex} onClick={() => { setInput(ex); setPanel("chat"); setTimeout(() => inputRef.current?.focus(), 100); }} style={{ display: "block", width: "100%", textAlign: "left" as const, padding: "9px 12px", marginBottom: 7, borderRadius: 8, border: "1px solid #e0e7ef", background: "#fff", color: "#6b7280", cursor: "pointer", fontSize: 11.5, fontFamily: "inherit", lineHeight: 1.5 }}
               onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = "#2563eb"; (e.currentTarget as HTMLButtonElement).style.color = "#1e2040"; }}
               onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = "#e0e7ef"; (e.currentTarget as HTMLButtonElement).style.color = "#6b7280"; }}>
@@ -230,21 +262,21 @@ export default function Chat() {
           <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "5px 10px", borderRadius: 8, background: "#eff6ff", border: "1px solid #bfdbfe" }}>
             <img src={pendingImage} alt="" style={{ width: 26, height: 26, objectFit: "cover", borderRadius: 4 }} />
             <span style={{ fontSize: 11, color: "#6b7280", maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{pendingImageName}</span>
-            <button onClick={() => { setPendingImage(null); setPendingImageName(""); }} style={{ background: "none", border: "none", cursor: "pointer", color: "#9ca3af", fontSize: 13, padding: 0 }}>✕</button>
+            <button onClick={() => { setPendingImage(null); setPendingImageName(""); }} style={{ background: "none", border: "none", cursor: "pointer", color: "#9ca3af", fontSize: 13, padding: 0 }}>Ã¢ÂÂ</button>
           </div>
         </div>
       )}
 
       <div style={{ padding: "8px 14px 14px", background: "#fff", borderTop: "1px solid #e8eaf2", flexShrink: 0 }}>
         <div style={{ display: "flex", alignItems: "flex-end", gap: 8, background: "#f8faff", border: `1.5px solid ${pendingImage ? "#2563eb" : "#e0e7ef"}`, borderRadius: 12, padding: "8px 10px", transition: "border-color 0.2s" }}>
-          <button onClick={() => fileRef.current?.click()} title="Joindre une maquette" style={{ width: 30, height: 30, borderRadius: 7, border: "1px solid #e0e7ef", background: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, flexShrink: 0, color: "#9194a8" }}>🖼️</button>
+          <button onClick={() => fileRef.current?.click()} title="Joindre une maquette" style={{ width: 30, height: 30, borderRadius: 7, border: "1px solid #e0e7ef", background: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, flexShrink: 0, color: "#9194a8" }}>Ã°ÂÂÂ¼Ã¯Â¸Â</button>
           <input ref={fileRef} type="file" accept="image/*" onChange={(e) => { const f = e.target.files?.[0]; if (f) processFile(f); e.target.value = ""; }} style={{ display: "none" }} />
-          <textarea ref={inputRef} style={{ flex: 1, border: "none", background: "transparent", fontFamily: "inherit", fontSize: 13.5, color: "#1e2040", resize: "none", outline: "none", lineHeight: 1.6, maxHeight: 130 }} placeholder="Décrivez ce que vous souhaitez créer…" value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(input, pendingImage ?? undefined); } }} onPaste={(e) => { for (const item of Array.from(e.clipboardData?.items ?? [])) { if (item.type.startsWith("image/")) { const f = item.getAsFile(); if (f) processFile(f); break; } } }} rows={1} disabled={loading} />
+          <textarea ref={inputRef} style={{ flex: 1, border: "none", background: "transparent", fontFamily: "inherit", fontSize: 13.5, color: "#1e2040", resize: "none", outline: "none", lineHeight: 1.6, maxHeight: 130 }} placeholder="DÃÂ©crivez ce que vous souhaitez crÃÂ©erÃ¢ÂÂ¦" value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(input, pendingImage ?? undefined); } }} onPaste={(e) => { for (const item of Array.from(e.clipboardData?.items ?? [])) { if (item.type.startsWith("image/")) { const f = item.getAsFile(); if (f) processFile(f); break; } } }} rows={1} disabled={loading} />
           <button onClick={() => sendMessage(input, pendingImage ?? undefined)} disabled={!isReady} style={{ width: 34, height: 34, borderRadius: 9, background: isReady ? "#1e2040" : "#f0f2f7", border: "none", cursor: isReady ? "pointer" : "not-allowed", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
             <svg viewBox="0 0 24 24" width="15" height="15" fill={isReady ? "#fff" : "#c0c4d6"}><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
           </button>
         </div>
-        <p style={{ textAlign: "center", fontSize: 10, color: "#c0c4d6", marginTop: 6 }}>Entrée pour envoyer · Shift+Entrée pour nouvelle ligne · Glisser ou Ctrl+V pour coller une image</p>
+        <p style={{ textAlign: "center", fontSize: 10, color: "#c0c4d6", marginTop: 6 }}>EntrÃÂ©e pour envoyer ÃÂ· Shift+EntrÃÂ©e pour nouvelle ligne ÃÂ· Glisser ou Ctrl+V pour coller une image</p>
       </div>
 
       <style>{`
