@@ -5,23 +5,37 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-const PENPOT_MCP_URL = process.env.PENPOT_MCP_URL ?? "http://penpot-mcp:4401";
+const WP_MCP_URL = process.env.WORDPRESS_MCP_URL ?? "http://wordpress-mcp:8787/mcp";
 const MODEL = process.env.LLM_MODEL ?? "claude-sonnet-4-6";
 
-const SYSTEM = `Tu es l'assistant design de l'agence Équinoxes (Reims), connecté à Penpot via MCP.
+const SYSTEM = `Tu es l'assistant développeur web de l'agence Équinoxes (Reims).
+Tu es connecté à un WordPress via MCP et tu crées des sites complets en Gutenberg.
 
-Charte graphique Équinoxes :
+Charte graphique Équinoxes par défaut :
 - Couleur principale : #1e1f34 (bleu nuit)
 - Couleur accent : #3ce65f (vert électrique)
-- Titre : Raleway Semi-Bold 600
-- Sous-titre : Roboto Condensed Light 300
-- Corps : Montserrat Light 300
+- Titre : Raleway Semi-Bold
+- Corps : Montserrat Light
 
-Tu crées des maquettes directement dans Penpot, appliques la charte Équinoxes, et réponds en français de façon concise et professionnelle.`;
+Quand on te demande de créer du contenu WordPress :
+1. Utilise les outils wordpress-mcp pour créer les pages/articles
+2. Génère du contenu Gutenberg structuré (blocs natifs)
+3. Applique une mise en page professionnelle
+4. Confirme ce qui a été créé avec l'URL de prévisualisation
 
-async function callMCP(tool: string, input: Record<string, unknown>) {
+Blocs Gutenberg que tu maîtrises :
+- core/heading, core/paragraph, core/image
+- core/columns, core/column
+- core/cover, core/buttons, core/button
+- core/group, core/separator
+- core/list, core/quote
+
+Réponds en français, de façon concise et professionnelle.
+Quand tu crées une page, donne toujours l'URL de prévisualisation sur mk.qoma.fr.`;
+
+async function callWordPressMCP(tool: string, input: Record<string, unknown>) {
   try {
-    const res = await fetch(`${PENPOT_MCP_URL}/mcp`, {
+    const res = await fetch(WP_MCP_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -33,8 +47,8 @@ async function callMCP(tool: string, input: Record<string, unknown>) {
     });
     const data = await res.json();
     return JSON.stringify(data.result ?? "OK");
-  } catch {
-    return "MCP non disponible";
+  } catch (err) {
+    return `Erreur MCP WordPress: ${err}`;
   }
 }
 
@@ -75,7 +89,10 @@ export async function POST(req: NextRequest) {
         for (const block of final.content) {
           if (block.type === "tool_use") {
             send({ type: "tool_start", tool: block.name });
-            const result = await callMCP(block.name, block.input as Record<string, unknown>);
+            const result = await callWordPressMCP(
+              block.name,
+              block.input as Record<string, unknown>
+            );
             send({ type: "tool_done", tool: block.name, result });
           }
         }
