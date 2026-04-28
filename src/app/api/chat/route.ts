@@ -181,7 +181,7 @@ export async function POST(req: NextRequest) {
           try {
             const stream = await client.messages.stream({
               model: MODEL,
-              max_tokens: 4096,
+              max_tokens: 8192,
               system: SYSTEM,
               messages: currentMessages,
               tools: WP_TOOLS,
@@ -228,6 +228,17 @@ export async function POST(req: NextRequest) {
             // Recuperer tool_use blocks
             for (const block of finalMessage.content) {
               if (block.type === "tool_use") toolUseBlocks.push(block);
+            }
+
+            // Detecter coupure par limite de tokens
+            if (finalMessage.stop_reason === "max_tokens") {
+              send({ type: "text", text: "\n\n⚠️ Contenu trop long — je continue en divisant la tache..." });
+              // Continuer la boucle pour que Claude reprenne
+              const assistantMsg = { role: "assistant" as const, content: finalMessage.content };
+              currentMessages = [...currentMessages, assistantMsg];
+              currentMessages = [...currentMessages, { role: "user" as const, content: "Continue exactement ou tu t'es arrete. Termine la creation de la page et appelle wp_create_page ou wp_update_page." }];
+              clearInterval(heartbeatInterval);
+              continue;
             }
 
             // Fin si pas d'outils
