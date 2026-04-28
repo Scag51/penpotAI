@@ -159,7 +159,7 @@ export default function Chat() {
                   <div key={i} style={{ display: "flex", alignItems: "center", gap: 7, padding: "7px 12px", borderRadius: 8, marginBottom: 4, background: tc.status === "done" ? "#ecfdf5" : tc.status === "error" ? "#fef2f2" : "#eff6ff", border: `1px solid ${tc.status === "done" ? "#a7f3d0" : tc.status === "error" ? "#fecaca" : "#bfdbfe"}`, fontSize: 12 }}>
                     <span>{tc.status === "pending" ? "⏳" : tc.status === "done" ? "✅" : "❌"}</span>
                     <span style={{ color: tc.status === "done" ? "#059669" : tc.status === "error" ? "#dc2626" : "#2563eb", fontWeight: 500 }}>{tc.status === "pending" ? `${toolLabel(tc.tool)} en cours…` : tc.status === "done" ? toolLabel(tc.tool) : `Échec : ${toolLabel(tc.tool)}`}</span>
-                    {tc.status === "done" && tc.result?.url && <a href={tc.result.url as string} target="_blank" rel="noreferrer" style={{ marginLeft: "auto", color: "#2563eb", fontWeight: 700, fontSize: 11, textDecoration: "none", padding: "2px 9px", background: "#dbeafe", borderRadius: 6 }}>Voir ↗</a>}
+                    {tc.status === "done" && tc.result && (tc.result as Record<string, unknown>).url && <a href={(tc.result as Record<string, unknown>).url as string} target="_blank" rel="noreferrer" style={{ marginLeft: "auto", color: "#2563eb", fontWeight: 700, fontSize: 11, textDecoration: "none", padding: "2px 9px", background: "#dbeafe", borderRadius: 6 }}>Voir ↗</a>}
                     {tc.status === "error" && tc.error && <span style={{ marginLeft: 4, fontSize: 10, color: "#dc2626" }}>{String(tc.error).slice(0, 80)}</span>}
                   </div>
                 ))}
