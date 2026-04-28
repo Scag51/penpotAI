@@ -11,65 +11,63 @@ const WP_USER = process.env.WORDPRESS_USERNAME ?? "mk";
 const WP_PASS = process.env.WORDPRESS_APP_PASSWORD ?? "";
 const WP_AUTH = Buffer.from(`${WP_USER}:${WP_PASS}`).toString("base64");
 
-const SYSTEM = `Tu es l'assistant dÃ©veloppeur web de l'agence Ãquinoxes (Reims).
-Tu es connectÃ© directement Ã  WordPress via REST API sur ${WP_URL}.
+// Tarifs Claude Sonnet 4 ($/million tokens)
+const PRICE_INPUT = 3.0;
+const PRICE_OUTPUT = 15.0;
 
-IMPORTANT - Instructions de comportement :
-1. Commence TOUJOURS par appeler wp_get_site_info puis wp_list_pages pour connaÃ®tre l'Ã©tat du site
-2. Utilise wp_create_page pour crÃ©er une NOUVELLE page
-3. Utilise wp_update_page pour modifier une page EXISTANTE (quand l'ID est connu)
-4. AprÃ¨s chaque action WordPress, confirme ce qui a Ã©tÃ© fait avec l'URL directe
-5. Si une erreur survient, explique-la clairement et propose une solution
-6. GÃ©nÃ¨re du contenu Gutenberg riche avec des blocs variÃ©s (cover, columns, group, heading, paragraph, buttons)
-7. Termine TOUJOURS par un rÃ©sumÃ© de ce qui a Ã©tÃ© crÃ©Ã© avec les URLs
+const SYSTEM = `Tu es l'assistant développeur web de l'agence Equinoxes (Reims).
+Tu es connecte directement a WordPress via REST API sur ${WP_URL}.
 
-Style WordPress Gutenberg :
-- Utilise des blocs core/cover pour les heroes avec overlay sombre
-- Utilise core/columns pour les sections en grille
-- Utilise core/group avec background pour les sections colorÃ©es
-- Utilise core/buttons pour les CTAs
-- Couleurs : #1e1f34 (sombre), #3ce65f (accent vert), #ffffff (clair)
+Instructions :
+1. Commence par wp_get_site_info puis wp_list_pages pour connaitre l'etat du site
+2. Utilise wp_create_page pour une NOUVELLE page, wp_update_page pour MODIFIER une existante
+3. Apres chaque action, confirme avec l'URL
+4. Si erreur, explique clairement et propose une solution
+5. Genere du contenu Gutenberg concis (max 40 blocs par page)
+6. Termine par un resume avec les URLs
 
-R©ponds en franÃ§ais, de faÃ§on concise et professionnelle.`;
+Style Gutenberg : blocs core/cover pour heroes, core/columns pour grilles, core/buttons pour CTAs.
+Couleurs : #1e1f34 (sombre), #3ce65f (vert), #ffffff (clair).
+Reponds en francais, de facon concise.`;
 
 const WP_TOOLS: Anthropic.Tool[] = [
   {
     name: "wp_get_site_info",
-    description: "RÃ©cupÃ¨re les informations du site WordPress (nom, URL, description)",
+    description: "Recupere les informations du site WordPress",
     input_schema: { type: "object" as const, properties: {}, required: [] },
   },
   {
     name: "wp_list_pages",
-    description: "Liste toutes les pages WordPress avec leur ID, titre, statut et URL",
-    input_schema: { type: "object" as const, properties: { per_page: { type: "number", description: "Nombre de pages (dÃ©faut 20)" } }, required: [] },
+    description: "Liste toutes les pages WordPress avec ID, titre, statut et URL",
+    input_schema: { type: "object" as const, properties: { per_page: { type: "number" } }, required: [] },
   },
   {
     name: "wp_list_posts",
-    description: "Liste les articles WordPress avec leur ID, titre, statut et URL",
+    description: "Liste les articles WordPress",
     input_schema: { type: "object" as const, properties: { per_page: { type: "number" } }, required: [] },
   },
   {
     name: "wp_create_page",
-    description: "CrÃ©e une NOUVELLE page WordPress avec du contenu Gutenberg. Retourne l'ID, l'URL et le statut.",
+    description: "Cree une NOUVELLE page WordPress avec contenu Gutenberg. Retourne ID et URL.",
     input_schema: {
       type: "object" as const,
       properties: {
-        title: { type: "string", description: "Titre de la page" },
-        content: { type: "string", description: "Contenu en blocs Gutenberg HTML" },
-        status: { type: "string", enum: ["publish", "draft"], description: "publish pour publier immÃ©diatement" },
-        slug: { type: "string", description: "URL slug de la page" },
+        title: { type: "string" },
+        content: { type: "string", description: "Blocs Gutenberg HTML" },
+        status: { type: "string", enum: ["publish", "draft"] },
+        slug: { type: "string" },
       },
       required: ["title", "content"],
     },
   },
   {
     name: "wp_create_post",
-    description: "CrÃ©e un NOUVEL article WordPress. Retourne l'ID, l'URL et le statut.",
+    description: "Cree un NOUVEL article WordPress. Retourne ID et URL.",
     input_schema: {
       type: "object" as const,
       properties: {
         title: { type: "string" },
-        content: { type: "string", description: "Contenu en blocs Gutenberg HTML" },
+        content: { type: "string" },
         status: { type: "string", enum: ["publish", "draft"] },
         excerpt: { type: "string" },
       },
@@ -78,13 +76,13 @@ const WP_TOOLS: Anthropic.Tool[] = [
   },
   {
     name: "wp_update_page",
-    description: "Met Ã  jour une page WordPress EXISTANTE par son ID. Retourne l'URL mise Ã  jour.",
+    description: "Met a jour une page WordPress EXISTANTE par son ID.",
     input_schema: {
       type: "object" as const,
       properties: {
-        id: { type: "number", description: "ID de la page Ã  modifier" },
+        id: { type: "number", description: "ID de la page" },
         title: { type: "string" },
-        content: { type: "string", description: "Nouveau contenu Gutenberg HTML" },
+        content: { type: "string" },
         status: { type: "string", enum: ["publish", "draft"] },
       },
       required: ["id"],
@@ -94,14 +92,13 @@ const WP_TOOLS: Anthropic.Tool[] = [
 
 async function executeWpTool(name: string, input: Record<string, unknown>): Promise<{ data: unknown; error?: string }> {
   const headers = { "Authorization": `Basic ${WP_AUTH}`, "Content-Type": "application/json" };
-
   try {
     switch (name) {
       case "wp_get_site_info": {
         const res = await fetch(`${WP_URL}/wp-json`, { headers });
         if (!res.ok) return { data: null, error: `HTTP ${res.status}` };
         const d = await res.json();
-        return { data: { name: d.name, description: d.description, url: d.url, wp_version: d.wp_version } };
+        return { data: { name: d.name, description: d.description, url: d.url } };
       }
       case "wp_list_pages": {
         const res = await fetch(`${WP_URL}/wp-json/wp/v2/pages?per_page=${input.per_page ?? 20}&_fields=id,title,link,status`, { headers });
@@ -146,7 +143,7 @@ async function executeWpTool(name: string, input: Record<string, unknown>): Prom
         return { data: null, error: `Outil inconnu: ${name}` };
     }
   } catch (err) {
-    return { data: null, error: `Connexion WordPress Ã©chouÃ©e: ${err}` };
+    return { data: null, error: `Connexion WordPress echouee: ${err}` };
   }
 }
 
@@ -154,10 +151,14 @@ export async function POST(req: NextRequest) {
   const { messages } = await req.json();
   const encoder = new TextEncoder();
 
-  const stream = new ReadableStream({
+  const readableStream = new ReadableStream({
     async start(controller) {
       const send = (data: object) =>
         controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`));
+
+      // Compteurs globaux de tokens et cout
+      let totalInputTokens = 0;
+      let totalOutputTokens = 0;
 
       try {
         let currentMessages = [...messages];
@@ -167,91 +168,112 @@ export async function POST(req: NextRequest) {
         while (iteration < MAX_ITERATIONS) {
           iteration++;
 
-          // ââ Appel Claude avec STREAMING natif ââââââââââââââââââââââââââ
-          const stream = await client.messages.stream({
-            model: MODEL,
-            max_tokens: 4096,
-            system: SYSTEM,
-            messages: currentMessages,
-            tools: WP_TOOLS,
-          });
+          // Heartbeat toutes les 8s pour eviter timeout Traefik
+          const heartbeatInterval = setInterval(() => {
+            try {
+              controller.enqueue(encoder.encode(": ping\n\n"));
+            } catch { /* connexion fermee */ }
+          }, 8000);
 
-          let fullText = "";
-          const toolUseBlocks: Anthropic.ToolUseBlock[] = [];
+          let iterInputTokens = 0;
+          let iterOutputTokens = 0;
 
-          const heartbeat = setInterval(() => {
-            try { controller.enqueue(encoder.encode(": ping\n\n")); } catch { /* ignore */ }
-          }, 10000);
+          try {
+            const stream = await client.messages.stream({
+              model: MODEL,
+              max_tokens: 4096,
+              system: SYSTEM,
+              messages: currentMessages,
+              tools: WP_TOOLS,
+            });
 
-          for await (const event of stream) {
-            if (event.type === "content_block_delta") {
-              if (event.delta.type === "text_delta") {
-                fullText += event.delta.text;
+            const toolUseBlocks: Anthropic.ToolUseBlock[] = [];
+
+            // Stream token par token
+            for await (const event of stream) {
+              if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
                 send({ type: "text", text: event.delta.text });
               }
-            }
-            if (event.type === "content_block_start") {
-              if (event.content_block.type === "tool_use") {
+              if (event.type === "content_block_start" && event.content_block.type === "tool_use") {
                 send({ type: "tool_start", tool: event.content_block.name });
               }
+              if (event.type === "message_delta" && event.usage) {
+                iterOutputTokens = event.usage.output_tokens ?? 0;
+              }
             }
-          }
 
-          clearInterval(heartbeat);
-          const finalMessage = await stream.finalMessage();
+            clearInterval(heartbeatInterval);
+            const finalMessage = await stream.finalMessage();
 
-          // RÃ©cupÃ©rer les tool_use blocks
-          for (const block of finalMessage.content) {
-            if (block.type === "tool_use") {
-              toolUseBlocks.push(block);
+            // Tokens de cette iteration
+            iterInputTokens = finalMessage.usage?.input_tokens ?? 0;
+            iterOutputTokens = finalMessage.usage?.output_tokens ?? iterOutputTokens;
+            totalInputTokens += iterInputTokens;
+            totalOutputTokens += iterOutputTokens;
+
+            // Cout en euros (taux USD->EUR ~0.92)
+            const iterCostUsd = (iterInputTokens * PRICE_INPUT + iterOutputTokens * PRICE_OUTPUT) / 1_000_000;
+            const iterCostEur = iterCostUsd * 0.92;
+            const totalCostEur = (totalInputTokens * PRICE_INPUT + totalOutputTokens * PRICE_OUTPUT) / 1_000_000 * 0.92;
+
+            // Envoi des stats (visibles dans le panneau debug)
+            send({
+              type: "stats",
+              iteration,
+              tokens: { input: iterInputTokens, output: iterOutputTokens, total: iterInputTokens + iterOutputTokens },
+              cost: { iteration_eur: iterCostEur.toFixed(4), total_eur: totalCostEur.toFixed(4) },
+              total_tokens: { input: totalInputTokens, output: totalOutputTokens },
+            });
+
+            // Recuperer tool_use blocks
+            for (const block of finalMessage.content) {
+              if (block.type === "tool_use") toolUseBlocks.push(block);
             }
-          }
 
-          // ââ Pas d'outils â fin âââââââââââââââââââââââââââââââââââââââââ
-          if (finalMessage.stop_reason !== "tool_use" || toolUseBlocks.length === 0) {
-            if (!fullText) {
-              send({ type: "text", text: "â OpÃ©ration terminÃ©e." });
-            }
-            break;
-          }
-
-          // ââ ExÃ©cution des outils WordPress âââââââââââââââââââââââââââââ
-          const assistantMsg = { role: "assistant" as const, content: finalMessage.content };
-          currentMessages = [...currentMessages, assistantMsg];
-          const toolResults: Anthropic.ToolResultBlockParam[] = [];
-
-          for (const block of toolUseBlocks) {
-            const { data, error } = await executeWpTool(block.name, block.input as Record<string, unknown>);
-
-            if (error) {
-              send({ type: "tool_error", tool: block.name, error });
-              toolResults.push({
-                type: "tool_result",
-                tool_use_id: block.id,
-                content: `Erreur: ${error}`,
-                is_error: true,
+            // Fin si pas d'outils
+            if (finalMessage.stop_reason !== "tool_use" || toolUseBlocks.length === 0) {
+              // Stats finales
+              send({
+                type: "done_stats",
+                total_tokens: totalInputTokens + totalOutputTokens,
+                total_cost_eur: totalCostEur.toFixed(4),
+                iterations: iteration,
               });
-            } else {
-              send({ type: "tool_done", tool: block.name, result: data });
-              toolResults.push({
-                type: "tool_result",
-                tool_use_id: block.id,
-                content: JSON.stringify(data),
-              });
+              break;
             }
-          }
 
-          currentMessages = [...currentMessages, { role: "user" as const, content: toolResults }];
+            // Execution des outils WordPress
+            const assistantMsg = { role: "assistant" as const, content: finalMessage.content };
+            currentMessages = [...currentMessages, assistantMsg];
+            const toolResults: Anthropic.ToolResultBlockParam[] = [];
+
+            for (const block of toolUseBlocks) {
+              const { data, error } = await executeWpTool(block.name, block.input as Record<string, unknown>);
+              if (error) {
+                send({ type: "tool_error", tool: block.name, error });
+                toolResults.push({ type: "tool_result", tool_use_id: block.id, content: `Erreur: ${error}`, is_error: true });
+              } else {
+                send({ type: "tool_done", tool: block.name, result: data });
+                toolResults.push({ type: "tool_result", tool_use_id: block.id, content: JSON.stringify(data) });
+              }
+            }
+
+            currentMessages = [...currentMessages, { role: "user" as const, content: toolResults }];
+
+          } catch (iterErr) {
+            clearInterval(heartbeatInterval);
+            throw iterErr;
+          }
         }
 
         if (iteration >= MAX_ITERATIONS) {
-          send({ type: "text", text: "\n\nâ ï¸ Limite d'itÃ©rations atteinte. VÃ©rifiez le rÃ©sultat sur WordPress." });
+          send({ type: "text", text: "\n\n⚠️ Limite d'iterations atteinte." });
         }
 
       } catch (err) {
         const msg = String(err);
         send({ type: "error", message: msg });
-        send({ type: "text", text: `\n\nâ Erreur : ${msg}` });
+        send({ type: "text", text: `\n\n❌ Erreur : ${msg}` });
       } finally {
         controller.enqueue(encoder.encode("data: [DONE]\n\n"));
         controller.close();
@@ -259,7 +281,7 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  return new Response(stream, {
+  return new Response(readableStream, {
     headers: {
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache, no-transform",
